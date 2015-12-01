@@ -23,15 +23,30 @@
 	document.body.appendChild(renderer.view);
 
 	requestAnimationFrame( animate );
+	var graphics = new PIXI.Graphics();
 
-	function animate() {
+	var WATER_HEIGHT = 100;
+	var WATER_WIDTH = 100;
+	var WATER_VOXEL_SIZE = 8;
 
-	    requestAnimationFrame( animate );
-
-	    // render the stage
-	    renderer.render(stage);
+	function drawWater(graphics) {
+		graphics.beginFill(0x0000FF);
+		for (var y = 0; y < WATER_HEIGHT; y++) {
+			for (var x = 0; x < WATER_WIDTH; x++) {
+				graphics.drawRect(x * WATER_VOXEL_SIZE, y * WATER_VOXEL_SIZE, WATER_VOXEL_SIZE, WATER_VOXEL_SIZE);
+			}
+		}
 	}
 
+	function animate() {
+	    requestAnimationFrame( animate );
+
+			graphics.clear();
+			drawWater(graphics);
+			stage.addChild(graphics);
+
+	    renderer.render(stage);
+	}
 
 	</script>
 

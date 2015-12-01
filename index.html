@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>wave - a water simulator</title>
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			background-color: #000000;
+		}
+	</style>
+	<script src="assets/pixi.min.js"></script>
+</head>
+<body>
+	<script>
+	// create an new instance of a pixi stage
+	var stage = new PIXI.Stage(0x66FF99);
+
+	// create a renderer instance.
+	var renderer = PIXI.autoDetectRenderer(1000, 1000);
+
+	// add the renderer view element to the DOM
+	document.body.appendChild(renderer.view);
+
+	requestAnimationFrame( animate );
+
+	function animate() {
+
+	    requestAnimationFrame( animate );
+
+	    // render the stage
+	    renderer.render(stage);
+	}
+
+
+	</script>
+
+	</body>
+</html>

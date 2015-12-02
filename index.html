@@ -27,24 +27,114 @@
 
 	var WATER_HEIGHT = 100;
 	var WATER_WIDTH = 100;
-	var WATER_VOXEL_SIZE = 8;
+	var WATER_VOXEL_SIZE = 5;
+	var WATER_LINE = 50;
+	var BOB_SPEED = 0.25;
+	var BOB_DAMPENING = 0.02;
 
-	function drawWater(graphics) {
-		graphics.beginFill(0x0000FF);
+	function indexFor(x, y) {
+		return y * WATER_WIDTH + x;
+	}
+
+	function newWater() {
+		var height = new Float32Array(WATER_HEIGHT * WATER_WIDTH);
+		var speed = new Float32Array(WATER_HEIGHT * WATER_WIDTH);
+		for (var i = 0; i < WATER_HEIGHT * WATER_WIDTH; i++) {
+			height[i] = 50;
+			speed[0];
+		}
+		speed[5050] = 60;
+		return {
+			height: height,
+			speed: speed
+		};
+	}
+
+	function bobWater(water) {
 		for (var y = 0; y < WATER_HEIGHT; y++) {
 			for (var x = 0; x < WATER_WIDTH; x++) {
+				var i = indexFor(x, y);
+				var heightDelta = water.height[i] - WATER_LINE;
+				var speed = water.speed[i];
+				speed = speed * (1 - BOB_DAMPENING);
+				water.speed[i] = speed - heightDelta * BOB_SPEED;
+				water.height[i] += water.speed[i] * BOB_SPEED;
+			}
+		}
+	}
+
+	var PROPAGATION_CONSTANT = 0.25;
+
+	function propagateWater(water) {
+		var newSpeed = water.speed.slice(0);
+		for (var y = 0; y < WATER_HEIGHT; y++) {
+			for (var x = 0; x < WATER_WIDTH; x++) {
+				var i = indexFor(x, y);
+				var height = water.height[i];
+				if (x > 0) {
+					var iLeft = indexFor(x - 1, y);
+					var delta = (water.height[iLeft] - height) * PROPAGATION_CONSTANT;
+					newSpeed[i] += delta;
+					newSpeed[iLeft] -= delta;
+				}
+				if (x < WATER_WIDTH - 1) {
+					var iRight = indexFor(x + 1, y);
+					var delta = (water.height[iRight] - height) * PROPAGATION_CONSTANT;
+					newSpeed[i] += delta;
+					newSpeed[iRight] -= delta;
+				}
+				if (y > 0) {
+					var iUp = indexFor(x, y - 1);
+					var delta = (water.height[iUp] - height) * PROPAGATION_CONSTANT;
+					newSpeed[i] += delta;
+					newSpeed[iUp] -= delta;
+				}
+				if (y < WATER_HEIGHT - 1) {
+					var iDown = indexFor(x, y + 1);
+					var delta = (water.height[iDown] - height) * PROPAGATION_CONSTANT;
+					newSpeed[i] += delta;
+					newSpeed[iDown] -= delta;
+				}
+			}
+		}
+		water.speed = newSpeed;
+	}
+
+	function colorFromHeight(height) {
+		if (height > 100) {
+			height = 100;
+		}
+		if (height < 0) {
+			height = 0;
+		}
+		var component = Math.floor(height / 100 * 255);
+		return component * 256 * 256 +
+			component * 256 +
+			component;
+	}
+
+	function drawWater(graphics, water) {
+		for (var y = 0; y < WATER_HEIGHT; y++) {
+			for (var x = 0; x < WATER_WIDTH; x++) {
+				var i = indexFor(x, y);
+				var h = water.height[i];
+				var color = colorFromHeight(h);
+				graphics.beginFill(color);
 				graphics.drawRect(x * WATER_VOXEL_SIZE, y * WATER_VOXEL_SIZE, WATER_VOXEL_SIZE, WATER_VOXEL_SIZE);
 			}
 		}
 	}
 
+	var water = newWater();
+
 	function animate() {
 	    requestAnimationFrame( animate );
 
 			graphics.clear();
-			drawWater(graphics);
+			drawWater(graphics, water);
 			stage.addChild(graphics);
-
+			bobWater(water);
+			propagateWater(water);
 	    renderer.render(stage);
 	}
 
